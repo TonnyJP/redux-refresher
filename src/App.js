@@ -1,24 +1,40 @@
-import logo from './logo.svg';
-import './App.css';
+import Cart from './components/Cart/Cart';
+import Layout from './components/Layout/Layout';
+import Products from './components/Shop/Products';
+import { useEffect } from "react";
 
+import { useSelector, useDispatch } from "react-redux"
+import { fetchData } from './store';
+
+let isFirstRendering = true
 function App() {
+  const dispatch = useDispatch();
+  const isShowCart = useSelector(state => state.showCart)
+  const cart = useSelector(state => state.items);
+  const didStateChange = useSelector(state => state.stateChanged)
+
+  useEffect(() => {
+    dispatch(fetchData())
+  }, [dispatch])
+
+  useEffect(() => {
+    if (isFirstRendering) {
+      isFirstRendering = false;
+      return
+    }
+    if (didStateChange) {
+      fetch('https://async-code-default-rtdb.europe-west1.firebasedatabase.app/:cart.json', {
+        method: 'PUT',
+        body: JSON.stringify(cart)
+      })
+    }
+  }, [cart, didStateChange])
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+
+    <Layout>
+      {isShowCart && <Cart />}
+      <Products />
+    </Layout>
   );
 }
 
